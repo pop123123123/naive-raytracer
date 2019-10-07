@@ -1,4 +1,4 @@
-use cgmath::{dot, Vector3, Point3};
+use cgmath::{dot, Vector3, Point3, Array};
 use cgmath::prelude::ElementWise;
 
 use crate::light::{Color, Ray, Light};
@@ -6,6 +6,7 @@ use crate::light::{Color, Ray, Light};
 pub type Triangle = [Point3<f64>; 3];
 
 pub struct Plane {
+  pub id: f64,
   pub vertices: Triangle,
   pub color: Color,
   pub normal: Vector3<f64>,
@@ -43,6 +44,7 @@ fn normal(vertices: &Triangle) -> Vector3<f64> {
 impl Plane {
   pub fn new(vertices: Triangle, color: Color) -> Self {
     Plane {
+      id: vertices.iter().fold(0.0, |sum, p| p.sum() + sum as f64) + color.sum(),
       vertices: vertices,
       color: color,
       normal: normal(&vertices),
@@ -67,7 +69,7 @@ impl Plane {
     Light {
       pos: self.intersect(ray).unwrap(),
       color: ray.color.mul_element_wise(self.color),
-      intensity: 1,
+      intensity: 1.0,
       reflet: true
     }
   }
@@ -76,4 +78,11 @@ impl Plane {
     ray.direction = self.normal.cross(ray.direction);
     ray.color = ray.color.mul_element_wise(self.color);
   }
+}
+
+impl PartialEq<Plane> for Plane
+{
+    fn eq(&self, other: &Plane) -> bool {
+        self.id.eq(&other.id)
+    }
 }

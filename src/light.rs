@@ -45,7 +45,7 @@ pub struct Ray {
 pub struct Light {
   pub pos: Point3<f64>,
   pub color: Color,
-  pub intensity: u8,
+  pub intensity: f64,
   pub reflet: bool
 }
 
