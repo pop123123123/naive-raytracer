@@ -1,0 +1,13 @@
+[package]
+name = "ray_tracing"
+version = "0.1.0"
+authors = ["Louis MOUHAT <louis.mouhat@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+cgmath = "0.17.0"
+itertools = "0.8.0"
+image = "0.22.3"
