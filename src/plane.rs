@@ -1,4 +1,4 @@
-use cgmath::{dot, Vector3, Point3, Array};
+use cgmath::{dot, Vector3, Point3, Array, EuclideanSpace};
 use cgmath::prelude::ElementWise;
 
 use crate::light::{Color, Ray, Light};
@@ -57,6 +57,9 @@ impl Plane {
       None
     } else {
       let d = dot(self.vertices[0] - ray.pos, n) / col;
+      if d < 0.0 {
+        return None;
+      }
       let point = ray.pos + d * ray.direction;
       if is_point_in_triangle(self.vertices, &point) {
         Some(point)
@@ -64,6 +67,9 @@ impl Plane {
         None
       }
     }
+  }
+  pub fn are_on_same_side(&self, p0: Point3<f64>, p1: Point3<f64>) -> bool {
+    dot((self.vertices[0] + self.normal).to_vec(), self.vertices[0]-p0).signum() == dot((self.vertices[0] + self.normal).to_vec(), self.vertices[0]-p1).signum()
   }
   pub fn light_from_ray(&self, ray: &Ray) -> Light {
     Light {

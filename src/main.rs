@@ -1,6 +1,6 @@
 extern crate cgmath;
-extern crate rayon;
 extern crate image;
+extern crate rayon;
 use cgmath::prelude::*;
 use cgmath::{dot, Point2, Point3, Vector3};
 
@@ -49,43 +49,31 @@ fn main() {
 
   let mut lights = Vec::<Light>::new();
   lights.push(Light {
-    pos: Point3::new(2.5, -0.5, 1.0),
+    pos: Point3::new(0.7, 0.0, 5.5),
     color: BLUE,
     intensity: 1.0e10,
     reflet: false,
   });
-  lights.push(Light {
-    pos: Point3::new(-3.5, 2.5, 1.0),
-    color: GREEN,
-    intensity: 1.0e10,
-    reflet: false,
-  });
-  lights.push(Light {
-    pos: Point3::new(0.5, 4.0, 3.0),
-    color: RED,
-    intensity: 6.0e9,
-    reflet: false,
-  }); /*
-      lights.push(Light {
-        pos: Point3::new(0.5, 0.5, 3.0),
-        color: WHITE,
-        intensity: 1.0e2,
-        reflet: false,
-      });*/
 
-  lights[0].pos += Vector3::new(2.0, -1.0, 0.0);
-  lights[1].pos += Vector3::new(-4.0, 2.0, 0.0);
-  lights[2].pos += Vector3::new(0.0, 3.5, 0.0);
-  for i in 0..120 {
-    lights[0].pos -= Vector3::new(2.0, -1.0, 0.0) / 30.0;
-    lights[1].pos -= Vector3::new(-4.0, 2.0, 0.0) / 30.0;
-    lights[2].pos -= Vector3::new(0.0, 3.5, 0.0) / 30.0;
+  if false {
+    lights[0].pos += Vector3::new(0.0, 0.0, -3.0);
+    for i in 0..120 {
+      lights[0].pos -= Vector3::new(0.0, 0.0, -3.0) / 30.0;
+      render(
+        &camera,
+        &mut screen,
+        &lights,
+        &planes,
+        format!("images/{:03}.png", i),
+      );
+    }
+  } else {
     render(
       &camera,
       &mut screen,
       &lights,
       &planes,
-      format!("images/{:03}.png", i),
+      "render.png".to_owned(),
     );
   }
 }
@@ -144,6 +132,7 @@ fn ray_to_color(
     c_plane.unwrap().color.mul_element_wise(
       lights
         .iter()
+        .filter(|light| c_plane.unwrap().are_on_same_side(ray.pos, light.pos))
         .map(|light| {
           //let old_direction = ray.direction;
           let ray = Ray {
@@ -185,6 +174,11 @@ fn render(
     col.x /= max;
     col.y /= max;
     col.z /= max;
-  });
+  }); /*
+      pixels.iter_mut().for_each(|mut col| {
+        col.x = col.x.min(1.0);
+        col.y = col.y.min(1.0);
+        col.z = col.z.min(1.0);
+      });*/
   save_image(pixels, name);
 }
