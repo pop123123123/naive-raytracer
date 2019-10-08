@@ -1,4 +1,4 @@
-use cgmath::{Angle, Point3, Rad, Vector3};
+use cgmath::{Angle, Point3, Rad, Vector3, ElementWise, InnerSpace};
 use std::f64::consts::PI;
 
 pub const RESOLUTION: usize = 64*16;
@@ -50,6 +50,9 @@ pub struct Light {
 }
 
 impl Light {
+  pub fn get_intense_color_from(&self, p: Point3<f64>) -> Color {
+    self.color * (self.intensity/(self.pos - p).magnitude().powf(2.0))
+  }
 }
 
 #[derive(Clone, Copy)]
