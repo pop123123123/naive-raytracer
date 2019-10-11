@@ -5,7 +5,8 @@ use crate::screen::{Screen, WIDTH, HEIGHT};
 use crate::light::{Color, Ray, WHITE};
 use crate::plane::*;
 
-const PINHOLE : Point3<f64> = Point3::new(0.5, 0.5, 0.5);
+const focal : f64 = 0.8;
+const PINHOLE : Point3<f64> = Point3::new(0.5, 0.5, focal);
 
 pub struct Camera {
   //transformation: Decomposed,
@@ -36,9 +37,9 @@ impl Camera {
       radius: 0.01,
       pinhole_plane: Plane::new(
         [
-          Point3::new(1.0, 0.0, 0.5),
-          Point3::new(0.0, 1.0, 0.5),
-          Point3::new(0.0, 0.0, 0.5),
+          Point3::new(1.0, 0.0, focal),
+          Point3::new(0.0, 1.0, focal),
+          Point3::new(0.0, 0.0, focal),
         ],
         WHITE,
       ),
