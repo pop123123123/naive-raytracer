@@ -1,13 +1,16 @@
 extern crate cgmath;
 extern crate image;
+extern crate pbr;
+extern crate rand;
 extern crate rayon;
 extern crate tobj;
-extern crate rand;
 
 use cgmath::prelude::*;
 use cgmath::{dot, Point2, Point3, Vector3};
+use std::sync::RwLock;
 
 use crate::rayon::iter::*;
+use pbr::ProgressBar;
 use std::iter;
 
 mod camera;
@@ -154,24 +157,26 @@ fn ray_to_color(
             BLACK
           }
         })
-        .fold(BLACK, |sum, col| sum.add_element_wise(col)).add_element_wise(
-      planes
-        .iter()
-        .filter(|p| *p != c_plane.unwrap())
-        .map(|plane| {
-          iter::repeat_with(|| plane.random_point())
-          .take(1<<4)
-          .map(|point| {
-            let ray = Ray {
-              pos: closest_inter.unwrap(),
-              direction: point - closest_inter.unwrap(),
-              color: WHITE,
-            };
-            ray_to_color(&ray, lights, planes, c_plane, depth + 1)
-          })
-          .fold(BLACK, |sum, col| sum.add_element_wise(col))
-        })
-        .fold(BLACK, |sum, col| sum.add_element_wise(col))),
+        .fold(BLACK, |sum, col| sum.add_element_wise(col))
+        .add_element_wise(
+          planes
+            .iter()
+            .filter(|p| *p != c_plane.unwrap())
+            .map(|plane| {
+              iter::repeat_with(|| plane.random_point())
+                .take(1 << 4)
+                .map(|point| {
+                  let ray = Ray {
+                    pos: closest_inter.unwrap(),
+                    direction: point - closest_inter.unwrap(),
+                    color: WHITE,
+                  };
+                  ray_to_color(&ray, lights, planes, c_plane, depth + 1)
+                })
+                .fold(BLACK, |sum, col| sum.add_element_wise(col))
+            })
+            .fold(BLACK, |sum, col| sum.add_element_wise(col)),
+        ),
     ) / (ray.pos - closest_inter.unwrap()).magnitude().powf(2.0)
   } else {
     BLACK
@@ -185,11 +190,23 @@ fn render(
   planes: &Vec<Plane>,
   name: String,
 ) {
+  let count: u64 = (HEIGHT) as u64;
+  let lock = RwLock::new(ProgressBar::new(count));
+  lock.write().unwrap().format("╢▌▌░╟");
+
   let mut pixels = camera
     .rays
     .par_iter()
-    .map(|ray| ray_to_color(ray, lights, planes, None, 0))
+    .enumerate()
+    .map(|(i, ray)| {
+      if i % WIDTH == 0 {
+        lock.write().unwrap().inc();
+      }
+      ray_to_color(ray, lights, planes, None, 0)
+    })
     .collect::<Vec<Color>>();
+
+  lock.write().unwrap().finish_print("done");
 
   let max = pixels.iter().fold(0.0, |max, col| {
     f64::max(f64::max(col.x, col.y), col.z).max(max)
