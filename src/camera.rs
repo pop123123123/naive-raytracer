@@ -24,7 +24,7 @@ impl Camera {
       //projection: Ortho::new(),
       rays: (0..(HEIGHT*WIDTH)).map(|i| {
         let x = i%WIDTH;
-        let y = i/HEIGHT;
+        let y = i/WIDTH;
         let start = Point3::new(x as f64 / WIDTH as f64, y as f64 / HEIGHT as f64, 0.0);
         Ray {
           pos: start,

@@ -1,5 +1,6 @@
-use cgmath::{dot, Vector3, Point3, Array, EuclideanSpace};
+use cgmath::{dot, Vector3, Point3, Array, EuclideanSpace, InnerSpace};
 use cgmath::prelude::ElementWise;
+use rand::Rng;
 
 use crate::light::{Color, Ray, Light};
 
@@ -38,7 +39,7 @@ fn normal(vertices: &Triangle) -> Vector3<f64> {
   let v0 = vertices[2] - vertices[0];
   let v1 = vertices[1] - vertices[0];
 
-  v0.cross(v1)
+  v0.cross(v1).normalize()
 }
 
 impl Plane {
@@ -68,8 +69,15 @@ impl Plane {
       }
     }
   }
+  pub fn random_point(&self) -> Point3<f64> {
+    let mut rng = rand::thread_rng();
+    let (r0, r1) : (f64, f64) = (rng.gen(), rng.gen());
+    ((1.0 - r0.sqrt()) * self.vertices[0])
+    .add_element_wise(r0.sqrt() * (1.0 - r1) * self.vertices[1])
+    .add_element_wise((r0.sqrt() * r1) * self.vertices[2])
+  }
   pub fn are_on_same_side(&self, p0: Point3<f64>, p1: Point3<f64>) -> bool {
-    dot((self.vertices[0] + self.normal).to_vec(), self.vertices[0]-p0).signum() == dot((self.vertices[0] + self.normal).to_vec(), self.vertices[0]-p1).signum()
+    dot(self.normal, self.vertices[0]-p0).signum() == dot(self.normal, self.vertices[0]-p1).signum()
   }
   pub fn light_from_ray(&self, ray: &Ray) -> Light {
     Light {
@@ -79,10 +87,14 @@ impl Plane {
       reflet: true
     }
   }
-  pub fn reflect(&self, ray: &mut Ray) {
-    ray.pos = self.intersect(ray).unwrap();
-    ray.direction = self.normal.cross(ray.direction);
-    ray.color = ray.color.mul_element_wise(self.color);
+  pub fn reflect(&self, ray: &Ray) -> Ray {
+    let pos = self.intersect(ray).unwrap();
+    let direction = ray.direction - 2.0 * dot(self.normal, ray.direction) * self.normal;
+    Ray {
+      pos : pos,
+      direction : if self.are_on_same_side(ray.pos, pos + direction) {direction} else {-direction},
+      color : ray.color.mul_element_wise(self.color),
+    }
   }
 }
 

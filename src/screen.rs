@@ -15,7 +15,7 @@ pub const ITER_SQUARE: [Vector2<f64>; 4] = [
 pub type Screen = [Color; WIDTH * HEIGHT];
 
 pub trait CoolScreen {
-  fn init(color: Color) -> Self;
+  fn init(color: Color) -> Box<Self>;
   fn get(&self, x: usize, y: usize) -> Color;
   fn get_point(&self, point: Point2<f64>) -> Color;
   fn set(&mut self, x: usize, y: usize, color: Color);
@@ -37,8 +37,8 @@ fn proportion_of_surface(x: usize, y: usize, x0: f64, y0: f64, size: f64) -> f64
 }
 
 impl CoolScreen for Screen {
-  fn init<'a>(color: Color) -> Self {
-    [color; WIDTH * HEIGHT]
+  fn init(color: Color) -> Box<Self> {
+    Box::new([color; WIDTH * HEIGHT])
   }
   fn get_point(&self, point: Point2<f64>) -> Color {
     let x = (point.x * WIDTH as f64) as usize;
