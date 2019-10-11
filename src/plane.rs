@@ -1,8 +1,8 @@
-use cgmath::{dot, Vector3, Point3, Array, EuclideanSpace, InnerSpace};
 use cgmath::prelude::ElementWise;
+use cgmath::{dot, Array, EuclideanSpace, InnerSpace, Point3, Vector3};
 use rand::Rng;
 
-use crate::light::{Color, Ray, Light};
+use crate::light::{Color, Light, Ray};
 
 pub type Triangle = [Point3<f64>; 3];
 
@@ -71,36 +71,32 @@ impl Plane {
   }
   pub fn random_point(&self) -> Point3<f64> {
     let mut rng = rand::thread_rng();
-    let (r0, r1) : (f64, f64) = (rng.gen(), rng.gen());
+    let (r0, r1): (f64, f64) = (rng.gen(), rng.gen());
     ((1.0 - r0.sqrt()) * self.vertices[0])
-    .add_element_wise(r0.sqrt() * (1.0 - r1) * self.vertices[1])
-    .add_element_wise((r0.sqrt() * r1) * self.vertices[2])
+      .add_element_wise(r0.sqrt() * (1.0 - r1) * self.vertices[1])
+      .add_element_wise((r0.sqrt() * r1) * self.vertices[2])
   }
   pub fn are_on_same_side(&self, p0: Point3<f64>, p1: Point3<f64>) -> bool {
-    dot(self.normal, self.vertices[0]-p0).signum() == dot(self.normal, self.vertices[0]-p1).signum()
-  }
-  pub fn light_from_ray(&self, ray: &Ray) -> Light {
-    Light {
-      pos: self.intersect(ray).unwrap(),
-      color: ray.color.mul_element_wise(self.color),
-      intensity: 1.0,
-      reflet: true
-    }
+    dot(self.normal, self.vertices[0] - p0).signum()
+      == dot(self.normal, self.vertices[0] - p1).signum()
   }
   pub fn reflect(&self, ray: &Ray) -> Ray {
     let pos = self.intersect(ray).unwrap();
     let direction = ray.direction - 2.0 * dot(self.normal, ray.direction) * self.normal;
     Ray {
-      pos : pos,
-      direction : if self.are_on_same_side(ray.pos, pos + direction) {direction} else {-direction},
-      color : ray.color.mul_element_wise(self.color),
+      pos: pos,
+      direction: if self.are_on_same_side(ray.pos, pos + direction) {
+        direction
+      } else {
+        -direction
+      },
+      color: ray.color.mul_element_wise(self.color),
     }
   }
 }
 
-impl PartialEq<Plane> for Plane
-{
-    fn eq(&self, other: &Plane) -> bool {
-        self.id.eq(&other.id)
-    }
+impl PartialEq<Plane> for Plane {
+  fn eq(&self, other: &Plane) -> bool {
+    self.id.eq(&other.id)
+  }
 }

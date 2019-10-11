@@ -1,7 +1,4 @@
-use cgmath::{Angle, Point3, Rad, Vector3, ElementWise, InnerSpace};
-use std::f64::consts::PI;
-
-pub const RESOLUTION: usize = 64*16;
+use cgmath::{Angle, ElementWise, InnerSpace, Point3, Rad, Vector3};
 
 pub const WHITE: Color = Point3::new(1.0, 1.0, 1.0);
 pub const BLACK: Color = Point3::new(0.0, 0.0, 0.0);
@@ -46,61 +43,10 @@ pub struct Light {
   pub pos: Point3<f64>,
   pub color: Color,
   pub intensity: f64,
-  pub reflet: bool
 }
 
 impl Light {
   pub fn get_intense_color_from(&self, p: Point3<f64>) -> Color {
-    self.color * (self.intensity/(self.pos - p).magnitude().powf(2.0))
-  }
-}
-
-#[derive(Clone, Copy)]
-pub struct LightIterator {
-  light: Light,
-  x: usize,
-  y: usize,
-}
-
-impl IntoIterator for Light {
-  type Item = Ray;
-  type IntoIter = LightIterator;
-
-  fn into_iter(self) -> Self::IntoIter {
-    LightIterator {
-      light: self,
-      x: 0,
-      y: 0,
-    }
-  }
-}
-
-fn sphere_to_cartesian(x: Rad<f64>, y: Rad<f64>) -> Vector3<f64> {
-  Vector3::new(x.cos() * y.cos(), y.sin(), y.cos()*x.sin())
-}
-
-impl Iterator for LightIterator {
-  type Item = Ray;
-  fn next(&mut self) -> Option<Ray> {
-    let ray = Ray {
-      pos: self.light.pos,
-      direction: sphere_to_cartesian(
-        Rad((self.x as f64) * 2.0 * PI / (RESOLUTION as f64)),
-        Rad((self.y as f64) * 2.0 * PI / (RESOLUTION as f64)),
-      ),
-      color: self.light.color,
-    };
-    self.x = (self.x + 1) % RESOLUTION;
-    if self.x == 0 {
-      self.y += 1;
-      if !self.light.reflet {
-      println!("{}/{}", self.y, RESOLUTION);
-      }
-    }
-    if self.y == RESOLUTION {
-      None
-    } else {
-      Some(ray)
-    }
+    self.color * (self.intensity / (self.pos - p).magnitude().powf(2.0))
   }
 }

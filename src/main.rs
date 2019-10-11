@@ -58,7 +58,6 @@ fn main() {
     pos: Point3::new(0.0, 2.5, 7.0),
     color: WHITE,
     intensity: 3.0e10,
-    reflet: false,
   });
 
   if false {
