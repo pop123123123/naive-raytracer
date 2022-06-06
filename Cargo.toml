@@ -10,7 +10,7 @@ edition = "2018"
 
 cgmath = "0.17.0"
 itertools = "0.8.0"
-image = "0.22.3"
+image = "0.23.12"
 rayon = "1.2.0"
 tobj = "0.1.11"
 rand = "0.7.2"
